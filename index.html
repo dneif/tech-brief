@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>科技产业晨报</title>
+  <meta name="description" content="全球 AI、Kiosk/OPS 与 AI PC 的每日产业晨报。">
+  <style>
+    :root { --ink:#394257; --muted:#788196; --paper:#fffdf9; --line:#e8e2dc; --lav:#e7e4ff; --mint:#d9f0e5; --peach:#ffe1d4; --sky:#d9efff; --butter:#fff1be; }
+    * { box-sizing:border-box; } body { margin:0; min-height:100vh; background:linear-gradient(130deg,#f8f5ff 0%,#fffaf5 45%,#f3fffb 100%); color:var(--ink); font-family:"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif; }
+    .shell { display:grid; grid-template-columns:280px minmax(0,760px); min-height:100vh; max-width:1120px; margin:auto; }
+    aside { padding:42px 26px; border-right:1px solid rgba(88,99,120,.12); background:rgba(255,255,255,.45); }
+    .brand { margin-bottom:35px; } .kicker { color:#8b7aad; font-size:12px; font-weight:800; letter-spacing:.13em; } h1 { margin:7px 0 8px; font-size:26px; letter-spacing:-.05em; } .sub { margin:0; color:var(--muted); font-size:13px; line-height:1.7; }
+    nav h2 { margin:0 0 12px; font-size:12px; color:var(--muted); letter-spacing:.1em; } details { margin:8px 0; border:1px solid rgba(77,91,116,.1); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.7); } summary { cursor:pointer; padding:11px 13px; font-size:14px; font-weight:700; } .dates { padding:0 8px 9px; display:grid; gap:4px; }
+    .date { width:100%; border:0; background:transparent; cursor:pointer; text-align:left; color:var(--ink); border-radius:9px; padding:8px 9px; font:inherit; font-size:13px; } .date:hover,.date[aria-current="date"] { background:var(--lav); font-weight:700; }
+    main { padding:44px 46px 64px; } .topline { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; align-items:center; margin-bottom:21px; } .day { display:inline-block; margin:0; padding:7px 12px; border-radius:99px; background:var(--butter); font-size:13px; font-weight:800; } .archive { color:var(--muted); font-size:13px; } .archive a { color:inherit; }
+    #brief { background:rgba(255,255,255,.78); padding:34px; border:1px solid rgba(92,104,126,.11); border-radius:24px; box-shadow:0 15px 45px rgba(103,92,128,.07); } .intro { margin:0 0 29px; color:var(--muted); line-height:1.85; }
+    section { margin:29px 0 0; } section h2 { display:inline-block; margin:0 0 15px; padding:7px 13px; background:var(--mint); border-radius:10px; font-size:15px; } .items { display:grid; gap:14px; }
+    article { padding:18px 19px; border-left:5px solid var(--peach); background:#fffdfb; border-radius:0 14px 14px 0; } article:nth-child(3n+2) { border-color:var(--sky); } article:nth-child(3n) { border-color:var(--lav); } h3 { margin:0 0 10px; font-size:17px; line-height:1.45; } h3 a { color:inherit; text-decoration-color:#c6b8ea; text-underline-offset:3px; } .field { margin:7px 0; color:#586276; font-size:14px; line-height:1.75; } .label { color:#9a7590; font-weight:800; } .source { margin:10px 0 0; font-size:13px; } .source a { color:#6c71ae; }
+    .empty { color:var(--muted); line-height:1.8; } footer { margin-top:26px; color:var(--muted); font-size:12px; text-align:right; }
+    @media (max-width:760px) { .shell { display:block; } aside { padding:25px 20px 15px; border-right:0; border-bottom:1px solid rgba(88,99,120,.12); } .brand { margin-bottom:18px; } nav { display:flex; gap:8px; overflow:auto; } nav h2 { display:none; } details { min-width:142px; } main { padding:25px 16px 45px; } #brief { padding:22px 18px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="kicker">DAILY INTELLIGENCE</div><h1>科技产业晨报</h1><p class="sub">全球 AI · Kiosk/OPS · AI PC<br>每日更新，纯文字阅读。</p></div>
+      <nav aria-label="晨报日期"><h2>按月份浏览</h2><div id="dates"></div></nav>
+    </aside>
+    <main>
+      <div class="topline"><p class="day" id="day">载入晨报中</p><span class="archive"><a href="./科技产业晨报.md">查看 Markdown 历史档</a></span></div>
+      <div id="brief" aria-live="polite"></div><footer>科技产业晨报 · 每日归档</footer>
+    </main>
+  </div>
+  <script>
+    const escapeHtml = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const linkify = s => escapeHtml(s).replace(/\[([^\]]+)\]\((https?:\/\/[^ )]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    const dateRE = /^##\s+(\d{4}-\d{2}-\d{2})\s*$/;
+    function parse(markdown) {
+      const entries = []; let current = null, category = null, item = null;
+      for (const raw of markdown.split(/\r?\n/)) { const line = raw.trim(), d = line.match(dateRE);
+        if (d) { current={date:d[1], categories:[]}; entries.push(current); category=null; item=null; continue; }
+        if (!current || !line || line.startsWith('# ') || line.startsWith('>') || line==='---') continue;
+        if (/^###\s+/.test(line)) { category={title:line.replace(/^###\s+/,''),items:[]}; current.categories.push(category); item=null; continue; }
+        if (/^####\s+/.test(line)) { if (!category) { category={title:'产业动态',items:[]}; current.categories.push(category); } const title=line.replace(/^####\s+/, ''); const m=title.match(/^\[([^\]]+)\]\((https?:\/\/[^ )]+)\)$/); item={title:m?m[1]:title,url:m?m[2]:'',summary:'',impact:'',source:''}; category.items.push(item); continue; }
+        if (item && /^-\s*摘要[：:]/.test(line)) item.summary=line.replace(/^-\s*摘要[：:]\s*/, '');
+        else if (item && /^-\s*产业影响[：:]/.test(line)) item.impact=line.replace(/^-\s*产业影响[：:]\s*/, '');
+        else if (item && /^-\s*来源[：:]/.test(line)) item.source=line.replace(/^-\s*来源[：:]\s*/, '');
+      } return entries;
+    }
+    function render(entry) { document.querySelector('#day').textContent = entry.date; const target=document.querySelector('#brief');
+      const blocks=entry.categories.map(c => `<section><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article><h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>${i.summary?`<p class="field"><span class="label">摘要：</span>${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
+      target.innerHTML = blocks || '<p class="empty">今天的晨报正在整理中，请稍后再回来阅读。</p>';
+      document.querySelectorAll('.date').forEach(b=>b.setAttribute('aria-current', b.dataset.date===entry.date?'date':'false'));
+    }
+    fetch('./科技产业晨报.md').then(r=>{if(!r.ok) throw new Error(); return r.text()}).then(text=>{ const entries=parse(text).sort((a,b)=>b.date.localeCompare(a.date)); const months={}; entries.forEach(e=>(months[e.date.slice(0,7)]??=[]).push(e)); const nav=document.querySelector('#dates'); Object.entries(months).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([month,days],index)=>{ const details=document.createElement('details'); details.open=index===0; details.innerHTML=`<summary>${month.replace('-',' 年 ')} 月</summary><div class="dates">${days.map(e=>`<button class="date" data-date="${e.date}">${e.date.slice(5).replace('-',' / ')}</button>`).join('')}</div>`; nav.appendChild(details); }); document.querySelectorAll('.date').forEach((b,i)=>b.addEventListener('click',()=>render(entries.find(e=>e.date===b.dataset.date)))); if(entries[0]) render(entries[0]); else throw new Error(); }).catch(()=>{document.querySelector('#day').textContent='尚无已发布晨报'; document.querySelector('#brief').innerHTML='<p class="empty">尚未找到可显示的晨报资料。</p>';});
+  </script>
+</body>
+</html>
