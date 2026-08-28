@@ -41,11 +41,13 @@
       for (const raw of markdown.split(/\r?\n/)) { const line = raw.trim(), d = line.match(dateRE);
         if (d) { current={date:d[1], categories:[]}; entries.push(current); category=null; item=null; continue; }
         if (!current || !line || line.startsWith('# ') || line.startsWith('>') || line==='---') continue;
-        if (/^###\s+/.test(line)) { category={title:line.replace(/^###\s+/,''),items:[]}; current.categories.push(category); item=null; continue; }
+        if (/^###\s+/.test(line)) { const title=line.replace(/^###\s+/, ''); if (/^\d+\.\s+/.test(title)) { if (!category || category.title!=='今日要闻') { category={title:'今日要闻',items:[]}; current.categories.push(category); } item={title:title.replace(/^\d+\.\s+/, ''),url:'',summary:'',impact:'',source:''}; category.items.push(item); } else { category={title,items:[]}; current.categories.push(category); item=null; } continue; }
         if (/^####\s+/.test(line)) { if (!category) { category={title:'产业动态',items:[]}; current.categories.push(category); } const title=line.replace(/^####\s+/, ''); const m=title.match(/^\[([^\]]+)\]\((https?:\/\/[^ )]+)\)$/); item={title:m?m[1]:title,url:m?m[2]:'',summary:'',impact:'',source:''}; category.items.push(item); continue; }
-        if (item && /^-\s*摘要[：:]/.test(line)) item.summary=line.replace(/^-\s*摘要[：:]\s*/, '');
-        else if (item && /^-\s*产业影响[：:]/.test(line)) item.impact=line.replace(/^-\s*产业影响[：:]\s*/, '');
-        else if (item && /^-\s*来源[：:]/.test(line)) item.source=line.replace(/^-\s*来源[：:]\s*/, '');
+        if (/^\*\*今日业务判断：\*\*/.test(line)) { category={title:'今日业务判断',items:[]}; current.categories.push(category); item={title:'业务判断',url:'',summary:line.replace(/^\*\*今日业务判断：\*\*\s*/, ''),impact:'',source:''}; category.items.push(item); continue; }
+        if (item && (/^[-*]\s*\*\*摘要：?\*\*/.test(line) || /^-\s*摘要[：:]/.test(line))) item.summary=line.replace(/^[-*]\s*\*\*摘要：?\*\*\s*/, '').replace(/^-\s*摘要[：:]\s*/, '');
+        else if (item && (/^[-*]\s*\*\*产业影响：?\*\*/.test(line) || /^-\s*产业影响[：:]/.test(line))) item.impact=line.replace(/^[-*]\s*\*\*产业影响：?\*\*\s*/, '').replace(/^-\s*产业影响[：:]\s*/, '');
+        else if (item && (/^[-*]\s*\*\*来源：?\*\*/.test(line) || /^-\s*来源[：:]/.test(line))) item.source=line.replace(/^[-*]\s*\*\*来源：?\*\*\s*/, '').replace(/^-\s*来源[：:]\s*/, '');
+        else if (item && !/^\*\*/.test(line)) item.summary += (item.summary ? ' ' : '') + line;
       } return entries;
     }
     function render(entry) { document.querySelector('#day').textContent = entry.date; const target=document.querySelector('#brief');
