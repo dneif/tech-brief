@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>科技产业晨报</title>
+  <title>产业晨报</title>
   <meta name="description" content="全球 AI、Kiosk/OPS 与 AI PC 的每日产业晨报。">
   <style>
     :root { --ink:#394257; --muted:#788196; --paper:#fffdf9; --line:#e8e2dc; --lav:#e7e4ff; --mint:#d9f0e5; --peach:#ffe1d4; --sky:#d9efff; --butter:#fff1be; }
@@ -24,12 +24,12 @@
 <body>
   <div class="shell">
     <aside>
-      <div class="brand"><div class="kicker">DAILY INTELLIGENCE</div><h1>科技产业晨报</h1><p class="sub">全球 AI · Kiosk/OPS · AI PC<br>每日更新，纯文字阅读。</p></div>
+      <div class="brand"><div class="kicker">DAILY INTELLIGENCE</div><h1>产业晨报</h1><p class="sub">全球 AI · Kiosk/OPS · AI PC<br>每日更新，纯文字阅读。</p></div>
       <nav aria-label="晨报日期"><h2>按月份浏览</h2><div id="dates"></div></nav>
     </aside>
     <main>
       <div class="topline"><p class="day" id="day">载入晨报中</p></div>
-      <div id="brief" aria-live="polite"></div><footer>科技产业晨报 · 每日归档</footer>
+      <div id="brief" aria-live="polite"></div><footer>产业晨报 · 每日归档</footer>
     </main>
   </div>
   <script>
@@ -45,7 +45,7 @@
         if (/^####\s+/.test(line)) { if (!category) { category={title:'产业动态',items:[]}; current.categories.push(category); } const title=line.replace(/^####\s+/, ''); const m=title.match(/^\[([^\]]+)\]\((https?:\/\/[^ )]+)\)$/); item={title:m?m[1]:title,url:m?m[2]:'',summary:'',impact:'',source:''}; category.items.push(item); continue; }
         if (/^\*\*今日业务判断：\*\*/.test(line)) { category={title:'今日业务判断',items:[]}; current.categories.push(category); item={title:'业务判断',url:'',summary:line.replace(/^\*\*今日业务判断：\*\*\s*/, ''),impact:'',source:''}; category.items.push(item); continue; }
         if (item && (/^(?:[-*]\s*)?\*\*摘要：?\*\*/.test(line) || /^-\s*摘要[：:]/.test(line))) item.summary=line.replace(/^(?:[-*]\s*)?\*\*摘要：?\*\*\s*/, '').replace(/^-\s*摘要[：:]\s*/, '');
-        else if (item && (/^(?:[-*]\s*)?\*\*产业影响：?\*\*/.test(line) || /^-\s*产业影响[：:]/.test(line))) item.impact=line.replace(/^(?:[-*]\s*)?\*\*产业影响：?\*\*\s*/, '').replace(/^-\s*产业影响[：:]\s*/, '');
+        else if (item && (/^(?:[-*]\s*)?\*\*产业影响：?\*\*/.test(line) || /^-\s*产业影响[：:]/.test(line))) item.impact=line.replace(/^(?:[-*]\s*)?\*\*产业影响：?\*\*/.test(line) ? /^(?:[-*]\s*)?\*\*产业影响：?\*\*\s*/ : /^-\s*产业影响[：:]\s*/, '');
         else if (item && (/^(?:[-*]\s*)?\*\*来源：?\*\*/.test(line) || /^-\s*来源[：:]/.test(line))) item.source=line.replace(/^(?:[-*]\s*)?\*\*来源：?\*\*\s*/, '').replace(/^-\s*来源[：:]\s*/, '');
         else if (item && !/^\*\*/.test(line)) item.summary += (item.summary ? ' ' : '') + line;
       } return entries;
