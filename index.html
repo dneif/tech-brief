@@ -31,6 +31,9 @@
     article { padding:18px 19px; border-left:5px solid var(--peach); background:#fffdfb; border-radius:0 14px 14px 0; }
     article:nth-child(3n+2) { border-color:var(--sky); }
     article:nth-child(3n) { border-color:var(--lav); }
+    section.judgment h2 { background:var(--butter); }
+    section.judgment article { border-left-color:#d5b45a; background:#fffaf0; }
+    section.judgment article h3, section.judgment article .label { display:none; }
     h3 { margin:0 0 10px; font-size:17px; line-height:1.45; }
     h3 a { color:inherit; text-decoration-color:#c6b8ea; text-underline-offset:3px; }
     .field { margin:7px 0; color:#586276; font-size:14px; line-height:1.75; }
@@ -63,7 +66,9 @@
 
     function parse(markdown) {
       const entries = []; let current = null, category = null, item = null;
-      for (const raw of markdown.split(/\r?\n/)) {
+      // Keep a business judgment separate even if it shares a Markdown line with item 7.
+      const normalized = markdown.replace(/([^\n])\s+(?=(?:\*\*)?(?:今日业务判断|本周业务判断)[：:])/g, '$1\n');
+      for (const raw of normalized.split(/\r?\n/)) {
         const line = raw.trim();
         const d = line.match(dateRE);
         const w = line.match(weekRE);
@@ -94,7 +99,7 @@
           const title=line.replace(/^####\s+/, ''); const m=title.match(/^\[([^\]]+)\]\((https?:\/\/[^ )]+)\)$/);
           item={title:m?m[1]:title,url:m?m[2]:'',summary:'',impact:'',source:''}; category.items.push(item); continue;
         }
-        const judgment = line.match(/^(?:\*\*)?(今日业务判断|本周业务判断)[：:](?:\*\*)?\s*(.*)$/);
+        const judgment = line.match(/^(?:[-*]\s*)?(?:\*\*)?(今日业务判断|本周业务判断)[：:](?:\*\*)?\s*(.*)$/);
         if (judgment) {
           const weekly=judgment[1]==='本周业务判断';
           category={title:weekly?'本周业务判断':'今日业务判断',items:[]}; current.categories.push(category);
@@ -115,7 +120,7 @@
     function render(entry) {
       document.querySelector('#day').textContent = entry.type==='weekly' ? entry.label+(entry.period?' · '+entry.period:'') : entry.date;
       const target=document.querySelector('#brief');
-      const blocks=entry.categories.map(c => `<section><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article><h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>${i.summary?`<p class="field"><span class="label">摘要：</span>${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
+      const blocks=entry.categories.map(c => `<section class="${/业务判断$/.test(c.title)?'judgment':''}"><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article><h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>${i.summary?`<p class="field"><span class="label">摘要：</span>${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
       target.innerHTML = blocks || '<p class="empty">这份晨报正在整理中，请稍后再回来阅读。</p>';
       document.querySelectorAll('.date').forEach(b=>b.setAttribute('aria-current', b.dataset.id===entry.id?'date':'false'));
     }
