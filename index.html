@@ -94,15 +94,20 @@
           const title=line.replace(/^####\s+/, ''); const m=title.match(/^\[([^\]]+)\]\((https?:\/\/[^ )]+)\)$/);
           item={title:m?m[1]:title,url:m?m[2]:'',summary:'',impact:'',source:''}; category.items.push(item); continue;
         }
-        if (/^\*\*今日业务判断：\*\*/.test(line) || /^\*\*本周业务判断：\*\*/.test(line)) {
-          const weekly=line.startsWith('**本周业务判断：**');
+        const judgment = line.match(/^(?:\*\*)?(今日业务判断|本周业务判断)[：:](?:\*\*)?\s*(.*)$/);
+        if (judgment) {
+          const weekly=judgment[1]==='本周业务判断';
           category={title:weekly?'本周业务判断':'今日业务判断',items:[]}; current.categories.push(category);
-          item={title:'业务判断',url:'',summary:line.replace(weekly?/^\*\*本周业务判断：\*\*\s*/:/^\*\*今日业务判断：\*\*\s*/, ''),impact:'',source:''}; category.items.push(item); continue;
+          item={title:'业务判断',url:'',summary:judgment[2],impact:'',source:''}; category.items.push(item); continue;
         }
-        if (item && (/^(?:[-*]\s*)?\*\*摘要：?\*\*/.test(line) || /^-\s*摘要[：:]/.test(line))) item.summary=line.replace(/^(?:[-*]\s*)?\*\*摘要：?\*\*\s*/, '').replace(/^-\s*摘要[：:]\s*/, '');
-        else if (item && (/^(?:[-*]\s*)?\*\*产业影响：?\*\*/.test(line) || /^-\s*产业影响[：:]/.test(line))) item.impact=line.replace(/^(?:[-*]\s*)?\*\*产业影响：?\*\*\s*/, '').replace(/^-\s*产业影响[：:]\s*/, '');
-        else if (item && (/^(?:[-*]\s*)?\*\*来源：?\*\*/.test(line) || /^-\s*来源[：:]/.test(line))) item.source=line.replace(/^(?:[-*]\s*)?\*\*来源：?\*\*\s*/, '').replace(/^-\s*来源[：:]\s*/, '');
-        else if (item && !/^\*\*/.test(line)) item.summary += (item.summary ? ' ' : '') + line;
+        const field = item && line.match(/^(?:[-*]\s*)?(?:\*\*)?(摘要|产业影响|来源)[：:](?:\*\*)?\s*(.*)$/);
+        if (field) {
+          if (field[1]==='摘要') item.summary=field[2];
+          else if (field[1]==='产业影响') item.impact=field[2];
+          else item.source=field[2];
+          continue;
+        }
+        if (item && !/^\*\*/.test(line)) item.summary += (item.summary ? ' ' : '') + line;
       }
       return entries.filter(e => e.type==='daily' || e.date);
     }
