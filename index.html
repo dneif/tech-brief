@@ -88,6 +88,10 @@
         if (!current || !line || line.startsWith('# ') || line.startsWith('>') || line==='---') continue;
         if (/^###\s+/.test(line)) {
           const title=line.replace(/^###\s+/, '');
+          if (current.type==='weekly') {
+            category={title:title.replace(/^\d+\s*[.．、）)]\s*/, ''),items:[]};
+            current.categories.push(category); item=null; continue;
+          }
           if (/^\d+\.\s+/.test(title)) {
             if (!category || category.title!=='今日要闻') { category={title:current.type==='weekly'?'本周要闻':'今日要闻',items:[]}; current.categories.push(category); }
             item={title:title.replace(/^\d+\.\s+/, ''),url:'',summary:'',impact:'',source:''}; category.items.push(item);
@@ -112,6 +116,18 @@
           else item.source=field[2];
           continue;
         }
+        if (current.type==='weekly' && category) {
+          const bullet=line.match(/^[-*]\s+(.+)$/);
+          if (bullet) {
+            const lead=bullet[1].match(/^\*\*([^*]+)\*\*\s*(.*)$/);
+            item={title:lead?lead[1]:'',url:'',summary:lead?lead[2]:bullet[1],impact:'',source:''};
+            category.items.push(item); continue;
+          }
+          if (!item) {
+            item={title:'',url:'',summary:line,impact:'',source:''};
+            category.items.push(item); continue;
+          }
+        }
         if (item && !/^\*\*/.test(line)) item.summary += (item.summary ? ' ' : '') + line;
       }
       return entries.filter(e => e.type==='daily' || e.date);
@@ -120,7 +136,7 @@
     function render(entry) {
       document.querySelector('#day').textContent = entry.type==='weekly' ? entry.label+(entry.period?' · '+entry.period:'') : entry.date;
       const target=document.querySelector('#brief');
-      const blocks=entry.categories.map(c => `<section class="${/业务判断$/.test(c.title)?'judgment':''}"><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article><h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>${i.summary?`<p class="field"><span class="label">摘要：</span>${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
+      const blocks=entry.categories.map(c => `<section class="${/业务判断$/.test(c.title)?'judgment':''}"><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article>${i.title?`<h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>`:''}${i.summary?`<p class="field">${entry.type==='weekly'?'':'<span class="label">摘要：</span>'}${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
       target.innerHTML = blocks || '<p class="empty">这份晨报正在整理中，请稍后再回来阅读。</p>';
       document.querySelectorAll('.date').forEach(b=>b.setAttribute('aria-current', b.dataset.id===entry.id?'date':'false'));
     }
