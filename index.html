@@ -41,6 +41,9 @@
     .source { margin:10px 0 0; font-size:13px; }
     .source a { color:#6c71ae; }
     .empty { color:var(--muted); line-height:1.8; }
+    .week-overview { margin-top:0; }
+    .week-overview h2 { background:var(--lav); }
+    .week-overview article { border-left-color:#8b7aad; background:#faf8ff; }
     footer { margin-top:26px; color:var(--muted); font-size:12px; text-align:right; }
     @media (max-width:760px) { .shell { display:block; } aside { padding:25px 20px 15px; border-right:0; border-bottom:1px solid rgba(88,99,120,.12); } .brand { margin-bottom:18px; } nav { display:flex; gap:8px; overflow:auto; } nav h2 { display:none; } details { min-width:142px; } main { padding:25px 16px 45px; } #brief { padding:22px 18px; } }
   </style>
@@ -137,7 +140,11 @@
       document.querySelector('#day').textContent = entry.type==='weekly' ? entry.label+(entry.period?' · '+entry.period:'') : entry.date;
       const target=document.querySelector('#brief');
       const blocks=entry.categories.map(c => `<section class="${/业务判断$/.test(c.title)?'judgment':''}"><h2>${escapeHtml(c.title)}</h2><div class="items">${c.items.map(i => `<article>${i.title?`<h3>${i.url?`<a href="${i.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(i.title)}</a>`:escapeHtml(i.title)}</h3>`:''}${i.summary?`<p class="field">${entry.type==='weekly'?'':'<span class="label">摘要：</span>'}${linkify(i.summary)}</p>`:''}${i.impact?`<p class="field"><span class="label">产业影响：</span>${linkify(i.impact)}</p>`:''}${i.source?`<p class="source"><span class="label">来源：</span>${linkify(i.source)}</p>`:''}</article>`).join('')}</div></section>`).join('');
-      target.innerHTML = blocks || '<p class="empty">这份晨报正在整理中，请稍后再回来阅读。</p>';
+      const itemCount=entry.categories.reduce((sum,c)=>sum+c.items.length,0);
+      const weeklyOverview=entry.type==='weekly'
+        ? `<section class="week-overview"><h2>本周汇总</h2><article><p class="field">已汇总 ${entry.categories.length} 个主题板块、${itemCount} 条重点判断${entry.period?`；统计区间 ${escapeHtml(entry.period)}`:''}。下方为完整周报内容。</p></article></section>`
+        : '';
+      target.innerHTML = (weeklyOverview+blocks) || '<p class="empty">这份晨报正在整理中，请稍后再回来阅读。</p>';
       document.querySelectorAll('.date').forEach(b=>b.setAttribute('aria-current', b.dataset.id===entry.id?'date':'false'));
     }
 
